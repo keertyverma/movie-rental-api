@@ -1,5 +1,5 @@
 import request from "supertest";
-import { disconnect } from "mongoose";
+import { Types, disconnect } from "mongoose";
 import config from "config";
 import http from "http";
 
@@ -56,6 +56,49 @@ describe("/api/v1/customers", () => {
           (customer: ICustomer) => customer.name === "Donald Duck"
         )
       ).toBeTruthy();
+    });
+  });
+
+  describe("GET /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const customerId = "123";
+      const res = await request(server).get(`${endpoint}/${customerId}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${customerId}`,
+      });
+    });
+
+    it("should return NotFound-404 if id does not exists", async () => {
+      // can not find customer by given id
+      const id = new Types.ObjectId().toString();
+      const res = await request(server).get(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.error).toMatchObject({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        details: `Customer with id = ${id} was not found.`,
+      });
+    });
+
+    it("should return customer by passing id", async () => {
+      // create a customer
+      const customer = await Customer.create({
+        name: "Mickey Mouse",
+        phone: "1234567891",
+        isGold: false,
+      });
+
+      const res = await request(server).get(`${endpoint}/${customer.id}`);
+
+      expect(res.statusCode).toBe(200);
+      const responseData = res.body.data;
+      expect(responseData._id).toBe(customer.id);
+      expect(responseData.name).toBe(customer.name);
     });
   });
 });

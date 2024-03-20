@@ -188,4 +188,92 @@ describe("/api/v1/movies", () => {
       expect(movieResponse.dailyRentalRate).toBe(movieData.dailyRentalRate);
     });
   });
+
+  describe("PUT /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server).put(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${id}`,
+      });
+    });
+
+    it("should return BadRequest-400 if required parameter are not passed", async () => {
+      // title, genreId, numberInStock, dailyRentalRate are the required parameters
+      const id = new Types.ObjectId().toString();
+
+      // genreId required parameter is not passed
+      const toUpdate = {
+        title: "king kong",
+        numberInStock: 12,
+        dailyRentalRate: 2,
+      };
+      const res = await request(server).put(`${endpoint}/${id}`).send(toUpdate);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"genreId" is required',
+      });
+    });
+
+    it("should return BadRequest-400 if genreId is invalid", async () => {
+      // There is no genre with given genreId present in DB
+      const genreId = new Types.ObjectId().toString();
+      const id = new Types.ObjectId().toString();
+
+      const toUpdate = {
+        title: "king kong",
+        genreId: genreId,
+        numberInStock: 12,
+        dailyRentalRate: 2,
+      };
+
+      const res = await request(server).put(`${endpoint}/${id}`).send(toUpdate);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid genreId = ${genreId}`,
+      });
+    });
+
+    it("should update movie by passing valid id", async () => {
+      // create genre and movie
+      const genre = await Genre.create({
+        name: "action",
+      });
+      const movie = await Movie.create({
+        title: "king kong",
+        genre: {
+          _id: genre._id,
+          name: genre.name,
+        },
+        numberInStock: 12,
+        dailyRentalRate: 5,
+      });
+
+      // update movie
+      const toUpdate = {
+        title: "king kong",
+        genreId: genre.id,
+        numberInStock: 11,
+        dailyRentalRate: 5,
+      };
+      const res = await request(server)
+        .put(`${endpoint}/${movie.id}`)
+        .send(toUpdate);
+
+      expect(res.statusCode).toBe(200);
+      const responseData = res.body.data;
+      expect(responseData._id).toBe(movie.id);
+      expect(responseData.numberInStock).toBe(toUpdate.numberInStock);
+    });
+  });
 });

@@ -54,7 +54,6 @@ const createMovie = async (req: Request, res: Response) => {
   const { error } = validateMovie(req.body);
   if (error) {
     let errorMessage = error.details[0].message;
-
     logger.error(`Input Validation Error! \n ${errorMessage}`);
     throw new BadRequestError(errorMessage);
   }
@@ -89,4 +88,54 @@ const createMovie = async (req: Request, res: Response) => {
   res.status(result.statusCode).json(result);
 };
 
-export { getAllMovies, getMovieById, createMovie };
+const updateMovie = async (req: Request, res: Response) => {
+  logger.debug(`PUT request on route -> ${req.baseUrl}`);
+
+  const { id } = req.params;
+  // check if id is valid
+  if (!Types.ObjectId.isValid(id)) {
+    throw new BadRequestError(`Invalid id = ${id}`);
+  }
+
+  // validate request body
+  const { error } = validateMovie(req.body);
+  if (error) {
+    logger.error(`Input Validation Error! \n ${error.details[0].message}`);
+    throw new BadRequestError(error.details[0].message);
+  }
+
+  const { title, genreId, numberInStock, dailyRentalRate } = req.body;
+  // get genre by id
+  const genre = await Genre.findById(genreId);
+  if (!genre) {
+    throw new BadRequestError(`Invalid genreId = ${genreId}`);
+  }
+
+  // find movie by id and update
+  const updatedMovie = await Movie.findByIdAndUpdate(
+    id,
+    {
+      title,
+      genre: {
+        _id: genre.id,
+        name: genre.name,
+      },
+      numberInStock,
+      dailyRentalRate,
+    },
+    { new: true }
+  ).select({ __v: 0 });
+
+  if (!updatedMovie) {
+    throw new NotFoundError(`Movie with id = ${id} was not found.`);
+  }
+
+  const result: APIResponse<IMovie> = {
+    status: "success",
+    statusCode: StatusCodes.OK,
+    data: updatedMovie,
+  };
+  res.status(result.statusCode).json(result);
+};
+
+export { getAllMovies, getMovieById, createMovie, updateMovie };

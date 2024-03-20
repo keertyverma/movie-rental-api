@@ -136,4 +136,77 @@ describe("/api/genres", () => {
       expect(res.body.data.name).toBe("action"); // genre name should is capitalized
     });
   });
+
+  describe("PATCH /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      // "id" should be of mongoDB object ID format like 65f415f9fa340f3183c8a44e
+      const id = "123";
+      const res = await request(server).patch(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${id}`,
+      });
+    });
+
+    it("should return BadRequest-400 if request body is invalid", async () => {
+      // "genreName" parameter passed on request body is wrong and not allowed
+      const toUpdate = {
+        name: "new genre",
+        randomParam: "abcd",
+      };
+      const id = new Types.ObjectId().toString();
+
+      const res = await request(server)
+        .patch(`${endpoint}/${id}`)
+        .send(toUpdate);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"randomParam" is not allowed',
+      });
+    });
+
+    it("should return NotFound-404 if id does not exists", async () => {
+      // genre is not found with given "id"
+      const id = new Types.ObjectId().toString();
+      const toUpdate = {
+        name: "genre-2",
+      };
+
+      const res = await request(server)
+        .patch(`${endpoint}/${id}`)
+        .send(toUpdate);
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.error).toMatchObject({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        details: `Genre with id = ${id} was not found.`,
+      });
+    });
+
+    it("should update genre by passing valid data", async () => {
+      // create a genre
+      const genre = await Genre.create({
+        name: "actions",
+      });
+
+      // update genre
+      const toUpdate = { name: "action" };
+      const res = await request(server)
+        .patch(`${endpoint}/${genre.id}`)
+        .send(toUpdate);
+
+      expect(res.statusCode).toBe(200);
+
+      const responseData = res.body.data;
+      expect(responseData._id).toBe(genre.id);
+      expect(responseData.name).toBe("action");
+    });
+  });
 });

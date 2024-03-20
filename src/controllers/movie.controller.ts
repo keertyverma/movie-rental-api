@@ -138,4 +138,27 @@ const updateMovie = async (req: Request, res: Response) => {
   res.status(result.statusCode).json(result);
 };
 
-export { getAllMovies, getMovieById, createMovie, updateMovie };
+const deleteMovie = async (req: Request, res: Response) => {
+  logger.debug(`DELETE request on route -> ${req.baseUrl}`);
+
+  const { id } = req.params;
+  // check if id is valid
+  if (!Types.ObjectId.isValid(id)) {
+    throw new BadRequestError(`Invalid id = ${id}`);
+  }
+
+  const deletedMovie = await Movie.findByIdAndDelete(id).select({ __v: 0 });
+
+  if (!deletedMovie) {
+    throw new NotFoundError(`Movie with id = ${id} was not found.`);
+  }
+
+  const result: APIResponse<IMovie> = {
+    status: "success",
+    statusCode: StatusCodes.OK,
+    data: deletedMovie,
+  };
+  res.status(result.statusCode).json(result);
+};
+
+export { getAllMovies, getMovieById, createMovie, updateMovie, deleteMovie };

@@ -276,4 +276,57 @@ describe("/api/v1/movies", () => {
       expect(responseData.numberInStock).toBe(toUpdate.numberInStock);
     });
   });
+
+  describe("DELETE /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${id}`,
+      });
+    });
+
+    it("should return NotFound-404 if movie with given id does not exists", async () => {
+      const id = "65f415f9fa340f3183c8a44e";
+      const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.error).toMatchObject({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        details: `Movie with id = ${id} was not found.`,
+      });
+    });
+
+    it("should delete movie by passing valid id", async () => {
+      // create genre and movie
+      const genre = await Genre.create({
+        name: "action",
+      });
+      const movie = await Movie.create({
+        title: "king kong",
+        genre: {
+          _id: genre._id,
+          name: genre.name,
+        },
+        numberInStock: 12,
+        dailyRentalRate: 5,
+      });
+
+      // delete movie
+      const res = await request(server).delete(`${endpoint}/${movie.id}`);
+
+      expect(res.statusCode).toBe(200);
+      const responseData = res.body.data;
+      expect(responseData._id).toBe(movie.id);
+
+      // confirm if movie is deleted from db
+      const deletedMovie = await Movie.findById(movie.id);
+      expect(deletedMovie).toBeNull;
+    });
+  });
 });

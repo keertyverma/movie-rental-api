@@ -4,7 +4,11 @@ import { Types } from "mongoose";
 
 import logger from "../utils/logger";
 import { APIResponse } from "../types/api-response";
-import { Customer, ICustomer } from "../models/customer.model";
+import {
+  Customer,
+  ICustomer,
+  validateCustomer,
+} from "../models/customer.model";
 import BadRequestError from "../utils/errors/bad-request";
 import NotFoundError from "../utils/errors/not-found";
 
@@ -45,4 +49,34 @@ const getCustomerById = async (req: Request, res: Response) => {
   res.status(result.statusCode).json(result);
 };
 
-export { getAllCustomer, getCustomerById };
+const createCustomer = async (req: Request, res: Response) => {
+  logger.debug(`POST Request on Route -> ${req.baseUrl}`);
+
+  // validate request body
+  const { error } = validateCustomer(req.body);
+  if (error) {
+    let errorMessage = error.details[0].message;
+    logger.error(`Input Validation Error! \n ${errorMessage}`);
+    throw new BadRequestError(errorMessage);
+  }
+
+  // create customer object
+  const { name, phone, isGold } = req.body;
+  let customer = new Customer({
+    name,
+    phone,
+    isGold,
+  });
+
+  // store in db
+  await customer.save();
+
+  const result: APIResponse<ICustomer> = {
+    status: "success",
+    statusCode: StatusCodes.CREATED,
+    data: customer,
+  };
+  res.status(result.statusCode).json(result);
+};
+
+export { getAllCustomer, getCustomerById, createCustomer };

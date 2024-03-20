@@ -1,3 +1,4 @@
+import Joi, { ObjectSchema } from "joi";
 import { Schema, model } from "mongoose";
 
 // Create an interface representing a document in MongoDB
@@ -32,4 +33,14 @@ const customerSchema = new Schema<ICustomer>({
 // Create a Model
 const Customer = model("Customer", customerSchema);
 
-export { ICustomer, Customer };
+const validateCustomer = (customer: ICustomer) => {
+  const schema: ObjectSchema = Joi.object({
+    name: Joi.string().min(5).max(50).required(),
+    phone: Joi.string().min(5).max(50).required(),
+    isGold: Joi.boolean(),
+  });
+
+  return schema.validate(customer);
+};
+
+export { ICustomer, Customer, validateCustomer };

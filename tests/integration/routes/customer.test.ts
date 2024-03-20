@@ -101,4 +101,66 @@ describe("/api/v1/customers", () => {
       expect(responseData.name).toBe(customer.name);
     });
   });
+
+  describe("POST /", () => {
+    it("should return BadRequest-400 if 'name' required parameter is not passed", async () => {
+      // name is the required parameter to create customer.
+      const res = await request(server)
+        .post(endpoint)
+        .send({ customername: "Donald Duck" });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"name" is required',
+      });
+    });
+
+    it("should return BadRequest-400 if 'phone' required parameter is not passed", async () => {
+      // phone is the required parameter to create customer.
+      const res = await request(server)
+        .post(endpoint)
+        .send({ name: "Donald Duck" });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"phone" is required',
+      });
+    });
+
+    it("should return BadRequest-400 if request body is invalid", async () => {
+      // passing some parameter in request body which is not allowed
+      const res = await request(server).post(endpoint).send({
+        name: "Donald Duck",
+        phone: "1234567818",
+        randomParam: "this parameter is not allowed",
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"randomParam" is not allowed',
+      });
+    });
+
+    it("should create customer if request is valid", async () => {
+      const customerData = {
+        name: "Mickey Mouse",
+        phone: "1234567891",
+      };
+      const res = await request(server).post(endpoint).send(customerData);
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.status).toBe("success");
+
+      const responseData = res.body.data;
+      expect(responseData.name).toBe(customerData.name);
+      expect(responseData.phone).toBe(customerData.phone);
+      expect(responseData.isGold).toBeFalsy;
+    });
+  });
 });

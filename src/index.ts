@@ -4,8 +4,12 @@ import config from "config";
 
 import app from "./app";
 import logger from "./utils/logger";
+import connectDB from "./db";
 
 const PORT = process.env.PORT || 3000;
+
+// connect to db
+connectDB();
 
 app.listen(PORT, () => {
   logger.info(`Listening on port ${PORT}`);

@@ -3,6 +3,7 @@ import config from "config";
 
 import genreRouter from "./routes/genre.route";
 import errorHandler from "./middlewares/error.middleware";
+import routeNotFoundHandler from "./middlewares/route-not-found.middleware";
 
 const BASE_URL = `/${config.get("appName")}/api/v1`;
 
@@ -16,6 +17,7 @@ app.get(BASE_URL, (req: Request, res: Response) => {
 app.use(`${BASE_URL}/genres`, genreRouter);
 
 // error handler middleware
+app.use(routeNotFoundHandler);
 app.use(errorHandler);
 
 export default app;

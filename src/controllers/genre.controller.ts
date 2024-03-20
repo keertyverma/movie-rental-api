@@ -5,6 +5,8 @@ import { Genre, IGenre } from "../models/genre.model";
 import logger from "../utils/logger";
 import { APIResponse } from "../types/api-response";
 import { Types } from "mongoose";
+import BadRequestError from "../utils/errors/bad-request";
+import NotFoundError from "../utils/errors/not-found";
 
 const getAllGenre = async (req: Request, res: Response) => {
   logger.debug(`GET Request on Route -> ${req.baseUrl}`);
@@ -25,16 +27,14 @@ const getGenreById = async (req: Request, res: Response) => {
   const { id } = req.params;
   // check if id is valid
   if (!Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: `Invalid id = ${id}` });
+    throw new BadRequestError(`Invalid id = ${id}`);
   }
 
   // get genre by id
   const genre = await Genre.findById(id).select({ __v: 0 });
 
   if (!genre) {
-    return res
-      .status(404)
-      .json({ error: `Genre with id = ${id} was not found.` });
+    throw new NotFoundError(`Genre with id = ${id} was not found.`);
   }
 
   const result: APIResponse<IGenre> = {

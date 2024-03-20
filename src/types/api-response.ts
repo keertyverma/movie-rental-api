@@ -10,3 +10,10 @@ export type APIError = {
   message: string;
   details: string;
 };
+
+export interface IErrorCodeMessageMap {
+  [key: number]: {
+    code: string;
+    message: string;
+  };
+}

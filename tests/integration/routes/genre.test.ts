@@ -9,7 +9,7 @@ import { Genre, IGenre } from "../../../src/models/genre.model";
 let server: http.Server;
 let endpoint: string = `/${config.get("appName")}/api/v1/genres`;
 
-describe("/api/genres", () => {
+describe("/api/v1/genres", () => {
   afterAll(async () => {
     // close the MongoDB connection
     await disconnect();

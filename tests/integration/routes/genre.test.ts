@@ -209,4 +209,47 @@ describe("/api/genres", () => {
       expect(responseData.name).toBe("action");
     });
   });
+
+  describe("DELETE /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${id}`,
+      });
+    });
+
+    it("should return NotFound-404 if id does not exists", async () => {
+      const id = new Types.ObjectId().toString();
+      const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.error).toMatchObject({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        details: `Genre with id = ${id} was not found.`,
+      });
+    });
+
+    it("should delete genre by passing valid id", async () => {
+      // create a genre
+      const genre = await Genre.create({
+        name: "action",
+      });
+
+      // delete genre
+      const res = await request(server).delete(`${endpoint}/${genre.id}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.data._id).toBe(genre.id);
+
+      // confirm if genre is deleted from db
+      const deletedGenre = await Genre.findById(genre.id);
+      expect(deletedGenre).toBeNull;
+    });
+  });
 });

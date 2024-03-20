@@ -4,11 +4,16 @@ import {
   getGenreById,
   createGenre,
   updateGenre,
+  deleteGenreById,
 } from "../controllers/genre.controller";
 
 const router = Router();
 
 router.route("/").get(getAllGenre).post(createGenre);
-router.route("/:id").get(getGenreById).patch(updateGenre);
+router
+  .route("/:id")
+  .get(getGenreById)
+  .patch(updateGenre)
+  .delete(deleteGenreById);
 
 export default router;

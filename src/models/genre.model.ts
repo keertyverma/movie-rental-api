@@ -28,4 +28,4 @@ const validateGenre = (genre: IGenre) => {
   return schema.validate(genre);
 };
 
-export { IGenre, Genre, validateGenre };
+export { IGenre, Genre, validateGenre, genreSchema };

@@ -5,6 +5,7 @@ import errorHandler from "./middlewares/error.middleware";
 import routeNotFoundHandler from "./middlewares/route-not-found.middleware";
 import genreRouter from "./routes/genre.route";
 import customerRouter from "./routes/customer.route";
+import movieRouter from "./routes/movie.route";
 
 const BASE_URL = `/${config.get("appName")}/api/v1`;
 
@@ -18,6 +19,7 @@ app.get(BASE_URL, (req: Request, res: Response) => {
 });
 app.use(`${BASE_URL}/genres`, genreRouter);
 app.use(`${BASE_URL}/customers`, customerRouter);
+app.use(`${BASE_URL}/movies`, movieRouter);
 
 // configure error handler middleware
 app.use(routeNotFoundHandler);

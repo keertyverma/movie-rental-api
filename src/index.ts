@@ -12,8 +12,10 @@ const PORT = process.env.PORT || 3000;
 // connect to db
 connectDB();
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   logger.info(`Listening on port ${PORT}`);
   logger.debug(`Node Env = ${process.env.NODE_ENV}`);
   logger.debug(`App name = ${config.get("appName")}`);
 });
+
+export default server;

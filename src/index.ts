@@ -1,16 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express, { Request, Response } from "express";
 import config from "config";
 
-import logger from "./src/logger";
+import app from "./app";
+import logger from "./utils/logger";
 
-const app = express();
 const PORT = process.env.PORT || 3000;
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("Welcome to Movie Rental API.");
-});
 
 app.listen(PORT, () => {
   logger.info(`Listening on port ${PORT}`);

@@ -163,4 +163,59 @@ describe("/api/v1/customers", () => {
       expect(responseData.isGold).toBeFalsy;
     });
   });
+
+  describe("PATCH /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      // "id" should be of mongoDB object ID format like 65f415f9fa340f3183c8a44e
+      const id = "123";
+      const res = await request(server).patch(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${id}`,
+      });
+    });
+
+    it("should return NotFound-404 if id does not exists", async () => {
+      // customer is not found with given "id"
+      const id = new Types.ObjectId().toString();
+      const toUpdate = {
+        name: "mickey mouse",
+      };
+
+      const res = await request(server)
+        .patch(`${endpoint}/${id}`)
+        .send(toUpdate);
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.error).toMatchObject({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        details: `Customer with id = ${id} was not found.`,
+      });
+    });
+
+    it("should update customer by passing valid data", async () => {
+      // create a customer
+      const customer = await Customer.create({
+        name: "mickey mousse",
+        phone: "1234567891",
+      });
+
+      // update customer
+      const toUpdate = { name: "Mickey Mouse" };
+      const res = await request(server)
+        .patch(`${endpoint}/${customer.id}`)
+        .send(toUpdate);
+
+      expect(res.statusCode).toBe(200);
+
+      const responseData = res.body.data;
+      expect(responseData._id).toBe(customer.id);
+      expect(responseData.name).toBe(toUpdate.name); // name is updated
+      expect(responseData.phone).toBe(customer.phone); // phone is not updated
+    });
+  });
 });

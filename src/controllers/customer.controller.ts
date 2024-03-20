@@ -79,4 +79,29 @@ const createCustomer = async (req: Request, res: Response) => {
   res.status(result.statusCode).json(result);
 };
 
-export { getAllCustomer, getCustomerById, createCustomer };
+const updateCustomer = async (req: Request, res: Response) => {
+  logger.debug(`PATCH request on route -> ${req.baseUrl}`);
+
+  const { id } = req.params;
+  // check if id is valid
+  if (!Types.ObjectId.isValid(id)) {
+    throw new BadRequestError(`Invalid id = ${id}`);
+  }
+
+  // check if customer exists and then update the customer
+  const updatedCustomer = await Customer.findByIdAndUpdate(id, req.body, {
+    new: true,
+  }).select({ __v: 0 });
+  if (!updatedCustomer) {
+    throw new NotFoundError(`Customer with id = ${id} was not found.`);
+  }
+
+  const result: APIResponse<ICustomer> = {
+    status: "success",
+    statusCode: StatusCodes.OK,
+    data: updatedCustomer,
+  };
+  res.status(result.statusCode).json(result);
+};
+
+export { getAllCustomer, getCustomerById, createCustomer, updateCustomer };

@@ -152,7 +152,7 @@ describe("/api/v1/genres", () => {
     });
 
     it("should return BadRequest-400 if request body is invalid", async () => {
-      // "genreName" parameter passed on request body is wrong and not allowed
+      // "randomParam" parameter passed on request body is wrong and not allowed
       const toUpdate = {
         name: "new genre",
         randomParam: "abcd",

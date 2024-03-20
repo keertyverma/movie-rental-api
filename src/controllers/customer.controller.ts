@@ -104,4 +104,35 @@ const updateCustomer = async (req: Request, res: Response) => {
   res.status(result.statusCode).json(result);
 };
 
-export { getAllCustomer, getCustomerById, createCustomer, updateCustomer };
+const deleteCustomerById = async (req: Request, res: Response) => {
+  logger.debug(`DELETE request on route -> ${req.baseUrl}`);
+
+  const { id } = req.params;
+  // check if id is valid
+  if (!Types.ObjectId.isValid(id)) {
+    throw new BadRequestError(`Invalid id = ${id}`);
+  }
+
+  const deletedCustomer = await Customer.findByIdAndDelete(id).select({
+    __v: 0,
+  });
+
+  if (!deletedCustomer) {
+    throw new NotFoundError(`Customer with id = ${id} was not found.`);
+  }
+
+  const result: APIResponse<ICustomer> = {
+    status: "success",
+    statusCode: StatusCodes.OK,
+    data: deletedCustomer,
+  };
+  res.status(result.statusCode).json(result);
+};
+
+export {
+  getAllCustomer,
+  getCustomerById,
+  createCustomer,
+  updateCustomer,
+  deleteCustomerById,
+};

@@ -218,4 +218,48 @@ describe("/api/v1/customers", () => {
       expect(responseData.phone).toBe(customer.phone); // phone is not updated
     });
   });
+
+  describe("DELETE /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${id}`,
+      });
+    });
+
+    it("should return NotFound-404 if id does not exists", async () => {
+      const id = new Types.ObjectId().toString();
+      const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.error).toMatchObject({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        details: `Customer with id = ${id} was not found.`,
+      });
+    });
+
+    it("should delete customer by passing valid id", async () => {
+      // create a customer
+      const customer = await Customer.create({
+        name: "mickey mousse",
+        phone: "1234567891",
+      });
+
+      // delete customer
+      const res = await request(server).delete(`${endpoint}/${customer.id}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.data._id).toBe(customer.id);
+
+      // confirm if customer is deleted from db
+      const deletedCustomer = await Customer.findById(customer.id);
+      expect(deletedCustomer).toBeNull;
+    });
+  });
 });

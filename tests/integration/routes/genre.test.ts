@@ -87,4 +87,53 @@ describe("/api/genres", () => {
       expect(responseData.name).toBe(genre.name);
     });
   });
+
+  describe("POST /", () => {
+    it("should return BadRequest-400 if required parameter is not passed", async () => {
+      // name is the required parameter to create genre.
+      const res = await request(server)
+        .post(endpoint)
+        .send({ genrename: "action" });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"name" is required',
+      });
+    });
+
+    it("should return BadRequest-400 if genre name length is not within range of 5 to 25", async () => {
+      const res = await request(server).post(endpoint).send({ name: "ac" });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"name" length must be at least 5 characters long',
+      });
+    });
+
+    it("should return BadRequest-400 if request body is invalid", async () => {
+      // passing some parameter in request body which is not allowed
+      const res = await request(server).post(endpoint).send({
+        name: "genre-1",
+        randomParam: "this parameter is not allowed",
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: '"randomParam" is not allowed',
+      });
+    });
+
+    it("should create genre if request is valid", async () => {
+      const res = await request(server).post(endpoint).send({ name: "action" });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.status).toBe("success");
+      expect(res.body.data.name).toBe("action"); // genre name should is capitalized
+    });
+  });
 });

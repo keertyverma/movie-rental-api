@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 
-import { Genre, IGenre } from "../models/genre.model";
+import { Genre, IGenre, validateGenre } from "../models/genre.model";
 import logger from "../utils/logger";
 import { APIResponse } from "../types/api-response";
 import { Types } from "mongoose";
@@ -45,4 +45,32 @@ const getGenreById = async (req: Request, res: Response) => {
   res.status(result.statusCode).json(result);
 };
 
-export { getAllGenre, getGenreById };
+const createGenre = async (req: Request, res: Response) => {
+  logger.debug(`POST Request on Route -> ${req.baseUrl}`);
+
+  // validate request body
+  const { error } = validateGenre(req.body);
+  if (error) {
+    let errorMessage = error.details[0].message;
+    logger.error(`Input Validation Error! \n ${errorMessage}`);
+    throw new BadRequestError(errorMessage);
+  }
+
+  // create genre object
+  const { name } = req.body;
+  let genre = new Genre({
+    name,
+  });
+
+  // store in db
+  await genre.save();
+
+  const result: APIResponse<IGenre> = {
+    status: "success",
+    statusCode: StatusCodes.CREATED,
+    data: genre,
+  };
+  res.status(result.statusCode).json(result);
+};
+
+export { getAllGenre, getGenreById, createGenre };

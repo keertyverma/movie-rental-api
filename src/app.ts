@@ -9,14 +9,15 @@ const BASE_URL = `/${config.get("appName")}/api/v1`;
 
 const app = express();
 
+app.use(express.json());
+
+// configure app routes
 app.get(BASE_URL, (req: Request, res: Response) => {
   res.send("Welcome to Movie Rental API.");
 });
-
-// middlewares
 app.use(`${BASE_URL}/genres`, genreRouter);
 
-// error handler middleware
+// configure error handler middleware
 app.use(routeNotFoundHandler);
 app.use(errorHandler);
 

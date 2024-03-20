@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import Joi, { ObjectSchema } from "joi";
 
 // Create an interface representing a document in MongoDB
 interface IGenre {
@@ -19,4 +20,12 @@ const genreSchema = new Schema<IGenre>({
 // Create a Model
 const Genre = model("Genre", genreSchema);
 
-export { IGenre, Genre };
+const validateGenre = (genre: IGenre) => {
+  const schema: ObjectSchema = Joi.object({
+    name: Joi.string().min(5).max(50).required(),
+  });
+
+  return schema.validate(genre);
+};
+
+export { IGenre, Genre, validateGenre };

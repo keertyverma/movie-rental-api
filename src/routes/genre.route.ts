@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { getAllGenre, getGenreById } from "../controllers/genre.controller";
+import {
+  getAllGenre,
+  getGenreById,
+  createGenre,
+} from "../controllers/genre.controller";
 
 const router = Router();
 
-router.get("/", getAllGenre);
+router.route("/").get(getAllGenre).post(createGenre);
 router.get("/:id", getGenreById);
 
 export default router;

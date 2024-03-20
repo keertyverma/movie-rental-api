@@ -1,5 +1,8 @@
 import { Schema, model } from "mongoose";
+import Joi, { ObjectSchema } from "joi";
+
 import { IGenre, genreSchema } from "./genre.model";
+import { mongoIdValidator } from "../utils/joi-custom-type";
 
 // Create an interface representing a document in MongoDB
 interface IMovie {
@@ -39,4 +42,15 @@ const movieSchema = new Schema({
 // Create a Model
 const Movie = model("Movie", movieSchema);
 
-export { IMovie, Movie };
+const validateMovie = (movie: any) => {
+  const schema: ObjectSchema = Joi.object({
+    title: Joi.string().min(1).max(255).required(),
+    genreId: mongoIdValidator.mongoId().required(),
+    numberInStock: Joi.number().min(0).required(),
+    dailyRentalRate: Joi.number().min(0).required(),
+  });
+
+  return schema.validate(movie);
+};
+
+export { IMovie, Movie, validateMovie };

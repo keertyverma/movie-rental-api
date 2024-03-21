@@ -1,4 +1,6 @@
+import Joi, { ObjectSchema } from "joi";
 import { Schema, model } from "mongoose";
+import { mongoIdValidator } from "../utils/joi-custom-type";
 
 // Create an interface representing a document in MongoDB
 interface IRental {
@@ -76,4 +78,13 @@ const rentalSchema = new Schema({
 // Create a Model
 const Rental = model("Rental", rentalSchema);
 
-export { Rental, IRental };
+const validateRental = (rental: { customerId: string; movieId: string }) => {
+  const schema: ObjectSchema = Joi.object({
+    customerId: mongoIdValidator.objectId().required(),
+    movieId: mongoIdValidator.objectId().required(),
+  });
+
+  return schema.validate(rental);
+};
+
+export { Rental, IRental, validateRental };

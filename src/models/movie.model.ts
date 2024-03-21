@@ -45,7 +45,7 @@ const Movie = model("Movie", movieSchema);
 const validateMovie = (movie: any) => {
   const schema: ObjectSchema = Joi.object({
     title: Joi.string().min(1).max(255).required(),
-    genreId: mongoIdValidator.mongoId().required(),
+    genreId: mongoIdValidator.objectId().required(),
     numberInStock: Joi.number().min(0).required(),
     dailyRentalRate: Joi.number().min(0).required(),
   });

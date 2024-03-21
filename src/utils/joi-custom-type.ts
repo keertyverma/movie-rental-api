@@ -8,14 +8,14 @@ const isValidMongoObjectId = (value: string): boolean => {
 
 // Create a custom Joi extension to validate MongoDB ObjectIds.
 const mongoIdValidator = Joi.extend((joi) => ({
-  type: "mongoId",
+  type: "objectId",
   base: joi.string(),
   messages: {
-    "mongoId.invalid": "{{#label}} must be a valid MongoDB ObjectId",
+    "objectId.invalid": "{{#label}} must be a valid MongoDB ObjectId",
   },
   validate(value, helper) {
     if (!isValidMongoObjectId(value)) {
-      return { value, errors: helper.error("mongoId.invalid") };
+      return { value, errors: helper.error("objectId.invalid") };
     }
     return { value };
   },

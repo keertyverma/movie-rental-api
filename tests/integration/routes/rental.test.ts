@@ -65,8 +65,6 @@ describe("/api/v1/movies", () => {
         },
       });
 
-      console.log(rental);
-
       const res = await request(server).get(endpoint);
 
       expect(res.statusCode).toBe(200);

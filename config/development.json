@@ -1,4 +1,4 @@
 {
   "appName": "movie-rental-dev",
-  "mongodbURI": "mongodb://localhost:27017/movierental"
+  "mongodbURI": "mongodb://localhost:27021,localhost:27022,localhost:27023/movierental?replicaSet=dbrs"
 }

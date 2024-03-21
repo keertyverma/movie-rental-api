@@ -7,6 +7,7 @@ import { IRental, Rental, validateRental } from "../models/rental.model";
 import BadRequestError from "../utils/errors/bad-request";
 import { Customer } from "../models/customer.model";
 import { Movie } from "../models/movie.model";
+import mongoose, { ClientSession } from "mongoose";
 
 const getAllRentals = async (req: Request, res: Response) => {
   logger.debug(`GET Request on Route -> ${req.baseUrl}`);
@@ -65,19 +66,33 @@ const createRental = async (req: Request, res: Response) => {
     },
   });
 
-  // store in db
-  await rental.save();
+  // use transaction to perform rental creation and movie stock updation as single task
+  const session: ClientSession = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    // save rentals
+    await rental.save({ session });
 
-  // decrement movie dailyRentalRate by 1
-  movie.numberInStock--;
-  await movie.save();
-
-  const result: APIResponse = {
-    status: "success",
-    statusCode: StatusCodes.CREATED,
-    data: rental,
-  };
-  res.status(result.statusCode).json(result);
+    // decrement movie dailyRentalRate by 1
+    movie.numberInStock--;
+    await movie.save({ session });
+    // Commit the changes
+    await session.commitTransaction();
+    const result: APIResponse = {
+      status: "success",
+      statusCode: StatusCodes.CREATED,
+      data: rental,
+    };
+    return res.status(result.statusCode).json(result);
+  } catch (err) {
+    // Rollback any changes made in the database
+    await session.abortTransaction();
+    logger.error(err);
+    throw new Error("Something went wrong!");
+  } finally {
+    // Ending the session
+    session.endSession();
+  }
 };
 
 export { getAllRentals, createRental };

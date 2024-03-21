@@ -56,14 +56,14 @@ describe("/api/v1/movies", () => {
 
   describe("GET /:id", () => {
     it("should return BadRequest-400 if id is invalid", async () => {
-      const genreId = "123";
-      const res = await request(server).get(`${endpoint}/${genreId}`);
+      const id = "123";
+      const res = await request(server).get(`${endpoint}/${id}`);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
         code: "BAD_REQUEST",
         message: "Invalid input data",
-        details: `Invalid id = ${genreId}`,
+        details: `Invalid id = ${id}`,
       });
     });
 

@@ -12,7 +12,7 @@ import { Genre } from "../../../src/models/genre.model";
 let server: http.Server;
 let endpoint: string = `/${config.get("appName")}/api/v1/rentals`;
 
-describe("/api/v1/movies", () => {
+describe("/api/v1/rentals", () => {
   afterAll(async () => {
     // close the MongoDB connection
     await disconnect();
@@ -195,6 +195,76 @@ describe("/api/v1/movies", () => {
       // movie numberinstock should be reduced by 1
       const updatedMovie = await Movie.findById(movie.id);
       expect(updatedMovie?.numberInStock).toBe(movie.numberInStock - 1);
+    });
+  });
+
+  describe("GET /:id", () => {
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server).get(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invalid input data",
+        details: `Invalid id = ${id}`,
+      });
+    });
+
+    it("should return NotFound-404 if id does not exists", async () => {
+      // can not find rental by given id
+      const id = new Types.ObjectId().toString();
+      const res = await request(server).get(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.error).toMatchObject({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        details: `Rental with id = ${id} was not found.`,
+      });
+    });
+
+    it("should return rental by passing id", async () => {
+      // populate rental document
+      const customer = await Customer.create({
+        name: "Mickey Mouse",
+        phone: "1234567891",
+      });
+
+      const genre = await Genre.create({
+        name: "action",
+      });
+      const movie = await Movie.create({
+        title: "king kong",
+        genre: {
+          _id: genre._id,
+          name: genre.name,
+        },
+        numberInStock: 2,
+        dailyRentalRate: 5,
+      });
+
+      const rental = await Rental.create({
+        customer: {
+          _id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          isGold: customer.isGold,
+        },
+        movie: {
+          _id: movie.id,
+          title: movie.title,
+          dailyRentalRate: movie.dailyRentalRate,
+        },
+      });
+
+      const res = await request(server).get(`${endpoint}/${rental.id}`);
+
+      expect(res.statusCode).toBe(200);
+      const responseData = res.body.data;
+      expect(responseData._id).toBe(rental.id);
+      expect(responseData.customer._id).toBe(customer.id);
+      expect(responseData.movie._id).toBe(movie.id);
     });
   });
 });

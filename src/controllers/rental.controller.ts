@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import mongoose, { ClientSession, Types } from "mongoose";
 
 import logger from "../utils/logger";
 import { APIResponse } from "../types/api-response";
@@ -7,7 +8,7 @@ import { IRental, Rental, validateRental } from "../models/rental.model";
 import BadRequestError from "../utils/errors/bad-request";
 import { Customer } from "../models/customer.model";
 import { Movie } from "../models/movie.model";
-import mongoose, { ClientSession } from "mongoose";
+import NotFoundError from "../utils/errors/not-found";
 
 const getAllRentals = async (req: Request, res: Response) => {
   logger.debug(`GET Request on Route -> ${req.baseUrl}`);
@@ -95,4 +96,28 @@ const createRental = async (req: Request, res: Response) => {
   }
 };
 
-export { getAllRentals, createRental };
+const getRentalById = async (req: Request, res: Response) => {
+  logger.debug(`GET by Id request on route -> ${req.baseUrl}`);
+
+  const { id } = req.params;
+  // check if id is valid
+  if (!Types.ObjectId.isValid(id)) {
+    throw new BadRequestError(`Invalid id = ${id}`);
+  }
+
+  // get rental by id
+  const rental: IRental = await Rental.findById(id).select({ __v: 0 });
+  if (!rental) {
+    throw new NotFoundError(`Rental with id = ${id} was not found.`);
+  }
+
+  const result: APIResponse<IRental> = {
+    status: "success",
+    statusCode: StatusCodes.OK,
+    data: rental,
+  };
+
+  res.status(result.statusCode).json(result);
+};
+
+export { getAllRentals, createRental, getRentalById };

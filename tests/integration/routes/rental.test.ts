@@ -25,6 +25,7 @@ describe("/api/v1/rentals", () => {
   afterEach(async () => {
     server.close();
     // db cleanup
+    await Genre.deleteMany({});
     await Movie.deleteMany({});
     await Customer.deleteMany({});
     await Rental.deleteMany({});

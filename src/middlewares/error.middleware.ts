@@ -2,7 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Error as MongooseError } from "mongoose";
 
-import { APIResponse, IErrorCodeMessageMap } from "../types/api-response";
+import {
+  APIResponse,
+  APIStatus,
+  IErrorCodeMessageMap,
+} from "../types/api-response";
 import CustomAPIError from "../utils/errors/custom-api";
 import logger from "../utils/logger";
 
@@ -52,7 +56,7 @@ const errorHandler = (
 
   const mappedError = errorCodeMessageMap[customError.statusCode];
   const errorResponse: APIResponse = {
-    status: "error",
+    status: APIStatus.ERROR,
     statusCode: customError.statusCode,
     error: {
       code: mappedError.code,

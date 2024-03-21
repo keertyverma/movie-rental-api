@@ -1,5 +1,10 @@
+export enum APIStatus {
+  SUCCESS = "success",
+  ERROR = "error",
+}
+
 export type APIResponse<T = any> = {
-  status: "success" | "error";
+  status: APIStatus;
   statusCode: number;
   data?: T[] | T;
   error?: APIError;

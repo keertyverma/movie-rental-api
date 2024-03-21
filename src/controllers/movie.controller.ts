@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Types } from "mongoose";
 
 import logger from "../utils/logger";
-import { APIResponse } from "../types/api-response";
+import { APIResponse, APIStatus } from "../types/api-response";
 import { IMovie, Movie, validateMovie } from "../models/movie.model";
 import BadRequestError from "../utils/errors/bad-request";
 import NotFoundError from "../utils/errors/not-found";
@@ -15,7 +15,7 @@ const getAllMovies = async (req: Request, res: Response) => {
   const movies = await Movie.find().select({ __v: 0 });
 
   const result: APIResponse<IMovie> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: movies,
   };
@@ -39,7 +39,7 @@ const getMovieById = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<IMovie> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: movie,
   };
@@ -81,7 +81,7 @@ const createMovie = async (req: Request, res: Response) => {
   await movie.save();
 
   const result: APIResponse<IMovie> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.CREATED,
     data: movie,
   };
@@ -131,7 +131,7 @@ const updateMovie = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<IMovie> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: updatedMovie,
   };
@@ -154,7 +154,7 @@ const deleteMovie = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<IMovie> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: deletedMovie,
   };

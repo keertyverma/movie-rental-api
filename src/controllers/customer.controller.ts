@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Types } from "mongoose";
 
 import logger from "../utils/logger";
-import { APIResponse } from "../types/api-response";
+import { APIResponse, APIStatus } from "../types/api-response";
 import {
   Customer,
   ICustomer,
@@ -18,7 +18,7 @@ const getAllCustomer = async (req: Request, res: Response) => {
   const customers = await Customer.find().select({ __v: 0 }).sort("name");
 
   const result: APIResponse<ICustomer> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: customers,
   };
@@ -42,7 +42,7 @@ const getCustomerById = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<ICustomer> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: customer,
   };
@@ -72,7 +72,7 @@ const createCustomer = async (req: Request, res: Response) => {
   await customer.save();
 
   const result: APIResponse<ICustomer> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.CREATED,
     data: customer,
   };
@@ -97,7 +97,7 @@ const updateCustomer = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<ICustomer> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: updatedCustomer,
   };
@@ -122,7 +122,7 @@ const deleteCustomerById = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<ICustomer> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: deletedCustomer,
   };

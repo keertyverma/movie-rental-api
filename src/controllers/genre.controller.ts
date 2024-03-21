@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 
 import { Genre, IGenre, validateGenre } from "../models/genre.model";
 import logger from "../utils/logger";
-import { APIResponse } from "../types/api-response";
+import { APIResponse, APIStatus } from "../types/api-response";
 import { Types } from "mongoose";
 import BadRequestError from "../utils/errors/bad-request";
 import NotFoundError from "../utils/errors/not-found";
@@ -14,7 +14,7 @@ const getAllGenre = async (req: Request, res: Response) => {
   const genres = await Genre.find().select({ __v: 0 }).sort("name");
 
   const result: APIResponse<IGenre> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: genres,
   };
@@ -38,7 +38,7 @@ const getGenreById = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<IGenre> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: genre,
   };
@@ -66,7 +66,7 @@ const createGenre = async (req: Request, res: Response) => {
   await genre.save();
 
   const result: APIResponse<IGenre> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.CREATED,
     data: genre,
   };
@@ -98,7 +98,7 @@ const updateGenre = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<IGenre> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: updatedGenre,
   };
@@ -121,7 +121,7 @@ const deleteGenreById = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<IGenre> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: deletedGenre,
   };

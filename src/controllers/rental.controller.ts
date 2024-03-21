@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import mongoose, { ClientSession, Types } from "mongoose";
 
 import logger from "../utils/logger";
-import { APIResponse } from "../types/api-response";
+import { APIResponse, APIStatus } from "../types/api-response";
 import { IRental, Rental, validateRental } from "../models/rental.model";
 import BadRequestError from "../utils/errors/bad-request";
 import { Customer } from "../models/customer.model";
@@ -19,7 +19,7 @@ const getAllRentals = async (req: Request, res: Response) => {
     .select({ __v: 0 });
 
   const result: APIResponse<IRental> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: rentals,
   };
@@ -80,7 +80,7 @@ const createRental = async (req: Request, res: Response) => {
     // Commit the changes
     await session.commitTransaction();
     const result: APIResponse = {
-      status: "success",
+      status: APIStatus.SUCCESS,
       statusCode: StatusCodes.CREATED,
       data: rental,
     };
@@ -112,7 +112,7 @@ const getRentalById = async (req: Request, res: Response) => {
   }
 
   const result: APIResponse<IRental> = {
-    status: "success",
+    status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
     data: rental,
   };

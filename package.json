@@ -14,6 +14,7 @@
   "author": "Keerty Verma",
   "license": "ISC",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/config": "^3.3.3",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
@@ -26,6 +27,7 @@
     "typescript": "^5.4.2"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "config": "^3.3.11",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",

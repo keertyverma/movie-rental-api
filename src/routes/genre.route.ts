@@ -6,10 +6,11 @@ import {
   updateGenre,
   deleteGenreById,
 } from "../controllers/genre.controller";
+import auth from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.route("/").get(getAllGenre).post(createGenre);
+router.route("/").get(getAllGenre).post(auth, createGenre);
 router
   .route("/:id")
   .get(getGenreById)

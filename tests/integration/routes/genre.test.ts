@@ -5,6 +5,7 @@ import http from "http";
 
 import appServer from "../../../src";
 import { Genre, IGenre } from "../../../src/models/genre.model";
+import { User } from "../../../src/models/user.model";
 
 let server: http.Server;
 let endpoint: string = `/${config.get("appName")}/api/v1/genres`;
@@ -89,11 +90,38 @@ describe("/api/v1/genres", () => {
   });
 
   describe("POST /", () => {
+    let token: string;
+    const exec = async (payload: any) => {
+      return await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(payload);
+    };
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
+      token = "";
+      const res = await exec({ name: "action" });
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
+    it("should return BadRequest-400 if token is invalid", async () => {
+      token = "invalid token";
+      const res = await exec({ name: "action" });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.text).toBe("Invalid token.");
+    });
+
     it("should return BadRequest-400 if required parameter is not passed", async () => {
       // name is the required parameter to create genre.
-      const res = await request(server)
-        .post(endpoint)
-        .send({ genrename: "action" });
+      const res = await exec({ genrename: "action" });
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -104,7 +132,7 @@ describe("/api/v1/genres", () => {
     });
 
     it("should return BadRequest-400 if genre name length is not within range of 5 to 25", async () => {
-      const res = await request(server).post(endpoint).send({ name: "ac" });
+      const res = await exec({ name: "ac" });
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -116,10 +144,11 @@ describe("/api/v1/genres", () => {
 
     it("should return BadRequest-400 if request body is invalid", async () => {
       // passing some parameter in request body which is not allowed
-      const res = await request(server).post(endpoint).send({
+      const res = await exec({
         name: "genre-1",
         randomParam: "this parameter is not allowed",
       });
+
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
         code: "BAD_REQUEST",
@@ -129,7 +158,7 @@ describe("/api/v1/genres", () => {
     });
 
     it("should create genre if request is valid", async () => {
-      const res = await request(server).post(endpoint).send({ name: "action" });
+      const res = await exec({ name: "action" });
 
       expect(res.statusCode).toBe(201);
       expect(res.body.status).toBe("success");

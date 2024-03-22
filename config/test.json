@@ -1,3 +1,4 @@
 {
-  "mongodbURI": "mongodb://localhost:27021,localhost:27022,localhost:27023/movierental-test?replicaSet=dbrs"
+  "mongodbURI": "mongodb://localhost:27021,localhost:27022,localhost:27023/movierental-test?replicaSet=dbrs",
+  "jwtPrivateKey": "test-jwt-private-key"
 }

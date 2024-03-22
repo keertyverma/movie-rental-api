@@ -1,11 +1,16 @@
 import Joi from "joi";
 import { Schema, model } from "mongoose";
+import jwt from "jsonwebtoken";
+import config from "config";
 
 interface IUser {
   name: string;
   email: string;
   password: string;
   isAdmin?: boolean;
+}
+interface IUserDocument extends IUser, Document {
+  generateAuthToken(): string;
 }
 
 const userSchema = new Schema({
@@ -37,7 +42,19 @@ const userSchema = new Schema({
   },
 });
 
-const User = model("User", userSchema);
+userSchema.methods.generateAuthToken = function (): string {
+  return jwt.sign(
+    {
+      _id: this._id,
+      name: this.name,
+      email: this.email,
+      isAdmin: this.isAdmin,
+    },
+    config.get("jwtPrivateKey")
+  );
+};
+
+const User = model<IUserDocument>("User", userSchema);
 
 const validateUser = (user: IUser) => {
   const schema = Joi.object({

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import logger from "../utils/logger";
-import { IUser, User, validateUser } from "../models/user.model";
+import { User, validateUser } from "../models/user.model";
 import BadRequestError from "../utils/errors/bad-request";
 import { APIResponse, APIStatus } from "../types/api-response";
 import { StatusCodes } from "http-status-codes";

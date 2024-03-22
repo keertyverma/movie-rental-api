@@ -81,6 +81,8 @@ describe("/api/v1/users", () => {
 
       expect(res.statusCode).toBe(201);
       expect(res.body.status).toBe("success");
+      expect(res.header["x-auth-token"]).not.toBeNull();
+
       const responseData = res.body.data;
       expect(responseData._id).not.toBeNull;
       expect(responseData.name).toBe(userData.name);

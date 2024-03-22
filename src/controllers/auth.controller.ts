@@ -38,10 +38,12 @@ const authenticateUser = async (req: Request, res: Response) => {
   if (!isValidPassword) {
     throw new BadRequestError("Invalid email or password");
   }
+  const token = user.generateAuthToken();
+
   const result: APIResponse = {
     status: APIStatus.SUCCESS,
     statusCode: StatusCodes.OK,
-    data: { message: "Logged in successfully" },
+    data: { message: "Logged in successfully", token },
   };
   return res.status(result.statusCode).json(result);
 };

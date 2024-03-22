@@ -101,6 +101,7 @@ describe("/api/v1/auth", () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.status).toBe("success");
       expect(res.body.data.message).toBe("Logged in successfully");
+      expect(res.body.data.token).not.toBeNull;
     });
   });
 });

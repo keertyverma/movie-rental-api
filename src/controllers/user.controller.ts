@@ -32,13 +32,17 @@ const createUser = async (req: Request, res: Response) => {
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(password, salt);
   await user.save();
+  const token = user.generateAuthToken();
 
   const result: APIResponse = {
     status: APIStatus.SUCCESS,
     statusCode: StatusCodes.CREATED,
     data: { _id: user.id, name: user.name, email: user.email },
   };
-  return res.status(result.statusCode).json(result);
+  return res
+    .header("x-auth-token", token)
+    .status(result.statusCode)
+    .json(result);
 };
 
 export { createUser };

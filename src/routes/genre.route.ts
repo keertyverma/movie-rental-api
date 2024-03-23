@@ -14,7 +14,7 @@ router.route("/").get(getAllGenre).post(auth, createGenre);
 router
   .route("/:id")
   .get(getGenreById)
-  .patch(updateGenre)
-  .delete(deleteGenreById);
+  .patch(auth, updateGenre)
+  .delete(auth, deleteGenreById);
 
 export default router;

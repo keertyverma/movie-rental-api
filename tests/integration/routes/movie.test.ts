@@ -6,6 +6,7 @@ import http from "http";
 import appServer from "../../../src";
 import { Movie } from "../../../src/models/movie.model";
 import { Genre } from "../../../src/models/genre.model";
+import { User } from "../../../src/models/user.model";
 
 let server: http.Server;
 let endpoint: string = `/${config.get("appName")}/api/v1/movies`;
@@ -105,6 +106,24 @@ describe("/api/v1/movies", () => {
   });
 
   describe("POST /", () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
+      const res = await request(server).post(endpoint).send({
+        title: "king kong",
+        numberInStock: 12,
+        dailyRentalRate: 2,
+      });
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
     it("should return BadRequest-400 if required parameter is not passed", async () => {
       // title, genreId, numberInStock, dailyRentalRate are the required parameters.
       const movieData = {
@@ -112,7 +131,10 @@ describe("/api/v1/movies", () => {
         numberInStock: 12,
         dailyRentalRate: 2,
       };
-      const res = await request(server).post(endpoint).send(movieData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(movieData);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -130,7 +152,10 @@ describe("/api/v1/movies", () => {
         numberInStock: 12,
         dailyRentalRate: 2,
       };
-      const res = await request(server).post(endpoint).send(movieData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(movieData);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -151,7 +176,10 @@ describe("/api/v1/movies", () => {
         dailyRentalRate: 2,
       };
 
-      const res = await request(server).post(endpoint).send(movieData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(movieData);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -173,7 +201,10 @@ describe("/api/v1/movies", () => {
         dailyRentalRate: 2,
       };
 
-      const res = await request(server).post(endpoint).send(movieData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(movieData);
 
       expect(res.statusCode).toBe(201);
       expect(res.body.status).toBe("success");
@@ -190,9 +221,26 @@ describe("/api/v1/movies", () => {
   });
 
   describe("PUT /:id", () => {
-    it("should return BadRequest-400 if id is invalid", async () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
       const id = "123";
       const res = await request(server).put(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server)
+        .put(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -212,7 +260,10 @@ describe("/api/v1/movies", () => {
         numberInStock: 12,
         dailyRentalRate: 2,
       };
-      const res = await request(server).put(`${endpoint}/${id}`).send(toUpdate);
+      const res = await request(server)
+        .put(`${endpoint}/${id}`)
+        .set("x-auth-token", token)
+        .send(toUpdate);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -234,7 +285,10 @@ describe("/api/v1/movies", () => {
         dailyRentalRate: 2,
       };
 
-      const res = await request(server).put(`${endpoint}/${id}`).send(toUpdate);
+      const res = await request(server)
+        .put(`${endpoint}/${id}`)
+        .set("x-auth-token", token)
+        .send(toUpdate);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -268,6 +322,7 @@ describe("/api/v1/movies", () => {
       };
       const res = await request(server)
         .put(`${endpoint}/${movie.id}`)
+        .set("x-auth-token", token)
         .send(toUpdate);
 
       expect(res.statusCode).toBe(200);
@@ -278,9 +333,26 @@ describe("/api/v1/movies", () => {
   });
 
   describe("DELETE /:id", () => {
-    it("should return BadRequest-400 if id is invalid", async () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
       const id = "123";
       const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server)
+        .delete(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -292,7 +364,9 @@ describe("/api/v1/movies", () => {
 
     it("should return NotFound-404 if movie with given id does not exists", async () => {
       const id = "65f415f9fa340f3183c8a44e";
-      const res = await request(server).delete(`${endpoint}/${id}`);
+      const res = await request(server)
+        .delete(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(404);
       expect(res.body.error).toMatchObject({
@@ -318,7 +392,9 @@ describe("/api/v1/movies", () => {
       });
 
       // delete movie
-      const res = await request(server).delete(`${endpoint}/${movie.id}`);
+      const res = await request(server)
+        .delete(`${endpoint}/${movie.id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(200);
       const responseData = res.body.data;

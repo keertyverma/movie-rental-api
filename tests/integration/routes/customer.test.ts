@@ -5,6 +5,7 @@ import http from "http";
 
 import appServer from "../../../src";
 import { Customer, ICustomer } from "../../../src/models/customer.model";
+import { User } from "../../../src/models/user.model";
 
 let server: http.Server;
 let endpoint: string = `/${config.get("appName")}/api/v1/customers`;
@@ -103,10 +104,28 @@ describe("/api/v1/customers", () => {
   });
 
   describe("POST /", () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
+      const id = "123";
+      const res = await request(server)
+        .post(endpoint)
+        .send({ customername: "Donald Duck" });
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
     it("should return BadRequest-400 if 'name' required parameter is not passed", async () => {
       // name is the required parameter to create customer.
       const res = await request(server)
         .post(endpoint)
+        .set("x-auth-token", token)
         .send({ customername: "Donald Duck" });
 
       expect(res.statusCode).toBe(400);
@@ -121,6 +140,7 @@ describe("/api/v1/customers", () => {
       // phone is the required parameter to create customer.
       const res = await request(server)
         .post(endpoint)
+        .set("x-auth-token", token)
         .send({ name: "Donald Duck" });
 
       expect(res.statusCode).toBe(400);
@@ -133,11 +153,14 @@ describe("/api/v1/customers", () => {
 
     it("should return BadRequest-400 if request body is invalid", async () => {
       // passing some parameter in request body which is not allowed
-      const res = await request(server).post(endpoint).send({
-        name: "Donald Duck",
-        phone: "1234567818",
-        randomParam: "this parameter is not allowed",
-      });
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send({
+          name: "Donald Duck",
+          phone: "1234567818",
+          randomParam: "this parameter is not allowed",
+        });
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -152,7 +175,10 @@ describe("/api/v1/customers", () => {
         name: "Mickey Mouse",
         phone: "1234567891",
       };
-      const res = await request(server).post(endpoint).send(customerData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(customerData);
 
       expect(res.statusCode).toBe(201);
       expect(res.body.status).toBe("success");
@@ -165,10 +191,27 @@ describe("/api/v1/customers", () => {
   });
 
   describe("PATCH /:id", () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
+      const id = "123";
+      const res = await request(server).patch(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
     it("should return BadRequest-400 if id is invalid", async () => {
       // "id" should be of mongoDB object ID format like 65f415f9fa340f3183c8a44e
       const id = "123";
-      const res = await request(server).patch(`${endpoint}/${id}`);
+      const res = await request(server)
+        .patch(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -187,6 +230,7 @@ describe("/api/v1/customers", () => {
 
       const res = await request(server)
         .patch(`${endpoint}/${id}`)
+        .set("x-auth-token", token)
         .send(toUpdate);
 
       expect(res.statusCode).toBe(404);
@@ -208,6 +252,7 @@ describe("/api/v1/customers", () => {
       const toUpdate = { name: "Mickey Mouse" };
       const res = await request(server)
         .patch(`${endpoint}/${customer.id}`)
+        .set("x-auth-token", token)
         .send(toUpdate);
 
       expect(res.statusCode).toBe(200);
@@ -220,9 +265,26 @@ describe("/api/v1/customers", () => {
   });
 
   describe("DELETE /:id", () => {
-    it("should return BadRequest-400 if id is invalid", async () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
       const id = "123";
       const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server)
+        .delete(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -234,7 +296,9 @@ describe("/api/v1/customers", () => {
 
     it("should return NotFound-404 if id does not exists", async () => {
       const id = new Types.ObjectId().toString();
-      const res = await request(server).delete(`${endpoint}/${id}`);
+      const res = await request(server)
+        .delete(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(404);
       expect(res.body.error).toMatchObject({
@@ -252,7 +316,9 @@ describe("/api/v1/customers", () => {
       });
 
       // delete customer
-      const res = await request(server).delete(`${endpoint}/${customer.id}`);
+      const res = await request(server)
+        .delete(`${endpoint}/${customer.id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.data._id).toBe(customer.id);

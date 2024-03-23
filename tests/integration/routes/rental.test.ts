@@ -8,6 +8,7 @@ import { Movie } from "../../../src/models/movie.model";
 import { Customer } from "../../../src/models/customer.model";
 import { Rental } from "../../../src/models/rental.model";
 import { Genre } from "../../../src/models/genre.model";
+import { User } from "../../../src/models/user.model";
 
 let server: http.Server;
 let endpoint: string = `/${config.get("appName")}/api/v1/rentals`;
@@ -79,12 +80,32 @@ describe("/api/v1/rentals", () => {
   });
 
   describe("POST /", () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
+      const rentalData = {
+        customerId: new Types.ObjectId().toString(),
+      };
+      const res = await request(server).post(endpoint).send(rentalData);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
     it("should return BadRequest-400 if required parameter is not passed", async () => {
       // customerId and movieId are the required parameters.
       const rentalData = {
         customerId: new Types.ObjectId().toString(),
       };
-      const res = await request(server).post(endpoint).send(rentalData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(rentalData);
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
         code: "BAD_REQUEST",
@@ -92,13 +113,17 @@ describe("/api/v1/rentals", () => {
         details: '"movieId" is required',
       });
     });
+
     it("should return BadRequest-400 if movieId data format is wrong", async () => {
       // movieId value must be a mongodb objectId
       const rentalData = {
         customerId: new Types.ObjectId().toString(),
         movieId: "123",
       };
-      const res = await request(server).post(endpoint).send(rentalData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(rentalData);
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
         code: "BAD_REQUEST",
@@ -106,6 +131,7 @@ describe("/api/v1/rentals", () => {
         details: '"movieId" must be a valid MongoDB ObjectId',
       });
     });
+
     it("should return BadRequest-400 if movieId is invalid", async () => {
       // create customer
       const customer = await Customer.create({
@@ -118,7 +144,10 @@ describe("/api/v1/rentals", () => {
         customerId: customer.id,
         movieId: movieId,
       };
-      const res = await request(server).post(endpoint).send(rentalData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(rentalData);
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
         code: "BAD_REQUEST",
@@ -126,6 +155,7 @@ describe("/api/v1/rentals", () => {
         details: `Invalid movieId = ${movieId}`,
       });
     });
+
     it("should return BadRequest-400 if movie is not in stock", async () => {
       const customer = await Customer.create({
         name: "Mickey Mouse",
@@ -148,7 +178,10 @@ describe("/api/v1/rentals", () => {
         customerId: customer.id,
         movieId: movie.id,
       };
-      const res = await request(server).post(endpoint).send(rentalData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(rentalData);
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
         code: "BAD_REQUEST",
@@ -180,7 +213,10 @@ describe("/api/v1/rentals", () => {
         customerId: customer.id,
         movieId: movie.id,
       };
-      const res = await request(server).post(endpoint).send(rentalData);
+      const res = await request(server)
+        .post(endpoint)
+        .set("x-auth-token", token)
+        .send(rentalData);
 
       expect(res.statusCode).toBe(201);
       const rental = res.body.data;

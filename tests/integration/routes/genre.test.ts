@@ -167,10 +167,27 @@ describe("/api/v1/genres", () => {
   });
 
   describe("PATCH /:id", () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
+      const id = "123";
+      const res = await request(server).patch(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
     it("should return BadRequest-400 if id is invalid", async () => {
       // "id" should be of mongoDB object ID format like 65f415f9fa340f3183c8a44e
       const id = "123";
-      const res = await request(server).patch(`${endpoint}/${id}`);
+      const res = await request(server)
+        .patch(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -190,6 +207,7 @@ describe("/api/v1/genres", () => {
 
       const res = await request(server)
         .patch(`${endpoint}/${id}`)
+        .set("x-auth-token", token)
         .send(toUpdate);
 
       expect(res.statusCode).toBe(400);
@@ -209,6 +227,7 @@ describe("/api/v1/genres", () => {
 
       const res = await request(server)
         .patch(`${endpoint}/${id}`)
+        .set("x-auth-token", token)
         .send(toUpdate);
 
       expect(res.statusCode).toBe(404);
@@ -229,6 +248,7 @@ describe("/api/v1/genres", () => {
       const toUpdate = { name: "action" };
       const res = await request(server)
         .patch(`${endpoint}/${genre.id}`)
+        .set("x-auth-token", token)
         .send(toUpdate);
 
       expect(res.statusCode).toBe(200);
@@ -240,9 +260,26 @@ describe("/api/v1/genres", () => {
   });
 
   describe("DELETE /:id", () => {
-    it("should return BadRequest-400 if id is invalid", async () => {
+    let token: string;
+
+    beforeEach(() => {
+      token = new User().generateAuthToken();
+    });
+
+    it("should return UnAuthorized-401 if client is not authorized", async () => {
+      // token is not passed in request header
       const id = "123";
       const res = await request(server).delete(`${endpoint}/${id}`);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
+    it("should return BadRequest-400 if id is invalid", async () => {
+      const id = "123";
+      const res = await request(server)
+        .delete(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatchObject({
@@ -254,7 +291,9 @@ describe("/api/v1/genres", () => {
 
     it("should return NotFound-404 if id does not exists", async () => {
       const id = new Types.ObjectId().toString();
-      const res = await request(server).delete(`${endpoint}/${id}`);
+      const res = await request(server)
+        .delete(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(404);
       expect(res.body.error).toMatchObject({
@@ -271,7 +310,9 @@ describe("/api/v1/genres", () => {
       });
 
       // delete genre
-      const res = await request(server).delete(`${endpoint}/${genre.id}`);
+      const res = await request(server)
+        .delete(`${endpoint}/${genre.id}`)
+        .set("x-auth-token", token);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.data._id).toBe(genre.id);

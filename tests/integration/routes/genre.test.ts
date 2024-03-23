@@ -263,7 +263,10 @@ describe("/api/v1/genres", () => {
     let token: string;
 
     beforeEach(() => {
-      token = new User().generateAuthToken();
+      const user = new User();
+      // user must be admin to perform delete operation
+      user.isAdmin = true;
+      token = user.generateAuthToken();
     });
 
     it("should return UnAuthorized-401 if client is not authorized", async () => {
@@ -273,6 +276,21 @@ describe("/api/v1/genres", () => {
 
       expect(res.statusCode).toBe(401);
       expect(res.text).toBe("Access Denied.Token is not provided.");
+    });
+
+    it("should return Forbidden-403 if user is not an admin", async () => {
+      // create new user without admin access
+      token = new User().generateAuthToken();
+
+      const id = "123";
+      const res = await request(server)
+        .delete(`${endpoint}/${id}`)
+        .set("x-auth-token", token);
+
+      expect(res.statusCode).toBe(403);
+      expect(res.text).toBe(
+        "Access Denied. You do not have permission to perform this operation."
+      );
     });
 
     it("should return BadRequest-400 if id is invalid", async () => {

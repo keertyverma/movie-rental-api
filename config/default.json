@@ -1,4 +1,5 @@
 {
   "appName": "movie-rental",
-  "jwtPrivateKey": ""
+  "jwtPrivateKey": "",
+  "requiresAuth": true
 }

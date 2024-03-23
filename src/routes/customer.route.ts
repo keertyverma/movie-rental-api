@@ -7,6 +7,7 @@ import {
   updateCustomer,
 } from "../controllers/customer.controller";
 import auth from "../middlewares/auth.middleware";
+import admin from "../middlewares/admin.middleware";
 
 const router = Router();
 
@@ -15,6 +16,6 @@ router
   .route("/:id")
   .get(getCustomerById)
   .patch(auth, updateCustomer)
-  .delete(auth, deleteCustomerById);
+  .delete([auth, admin], deleteCustomerById);
 
 export default router;

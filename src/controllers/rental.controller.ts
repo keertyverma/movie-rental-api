@@ -74,7 +74,7 @@ const createRental = async (req: Request, res: Response) => {
     // save rentals
     await rental.save({ session });
 
-    // decrement movie dailyRentalRate by 1
+    // decrement movie numberInStock by 1
     movie.numberInStock--;
     await movie.save({ session });
     // Commit the changes
@@ -88,7 +88,7 @@ const createRental = async (req: Request, res: Response) => {
   } catch (err) {
     // Rollback any changes made in the database
     await session.abortTransaction();
-    logger.error(err);
+    logger.error(`${err}`);
     throw new Error("Something went wrong!");
   } finally {
     // Ending the session
